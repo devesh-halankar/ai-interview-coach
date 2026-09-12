@@ -3,7 +3,7 @@ from typing import Optional
 
 from groq import Groq
 
-MODEL = "llama-3.3-70b-versatile"
+MODEL = "openai/gpt-oss-120b"
 
 _PLACEHOLDER_KEY = "your_groq_api_key_here"
 
