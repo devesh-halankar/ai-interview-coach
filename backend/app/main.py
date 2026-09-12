@@ -1,4 +1,5 @@
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
@@ -26,6 +27,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger("ai_interview_coach")
 
+# Extra origins to allow beyond localhost, e.g. a deployed Vercel frontend.
+# Comma-separated exact origins, set via the ALLOWED_ORIGINS env var, for example:
+#   ALLOWED_ORIGINS=https://ai-interview-coach.vercel.app
+ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("ALLOWED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -34,13 +44,15 @@ async def lifespan(app: FastAPI):
         if is_configured()
         else "NOT CONFIGURED - set GROQ_API_KEY in backend/.env"
     )
+    origins_status = ", ".join(ALLOWED_ORIGINS) if ALLOWED_ORIGINS else "none set (only localhost allowed)"
     print(
         "\n"
         + "=" * 60
         + "\n AI Interview Coach API is running\n"
-        + f" Model:        {MODEL}\n"
-        + f" Groq API key: {key_status}\n"
-        + " Docs:         http://127.0.0.1:8000/docs\n"
+        + f" Model:            {MODEL}\n"
+        + f" Groq API key:     {key_status}\n"
+        + f" Allowed origins:  {origins_status}\n"
+        + " Docs:             http://127.0.0.1:8000/docs\n"
         + "=" * 60,
         flush=True,
     )
@@ -56,7 +68,9 @@ app = FastAPI(title="AI Interview Coach API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    # Any localhost/127.0.0.1 port, so the Next.js dev server is allowed
+    # Deployed frontend origin(s), configured via ALLOWED_ORIGINS.
+    allow_origins=ALLOWED_ORIGINS,
+    # Any localhost/127.0.0.1 port, so the Next.js dev server is always allowed
     # regardless of which port it happens to start on.
     allow_origin_regex=r"^http://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
