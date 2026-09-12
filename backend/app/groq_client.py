@@ -3,7 +3,7 @@ from typing import Optional
 
 from groq import Groq
 
-MODEL = "openai/gpt-oss-120b"
+MODEL = "openai/gpt-oss-20b"
 
 _PLACEHOLDER_KEY = "your_groq_api_key_here"
 
